@@ -7,6 +7,7 @@
 ## Configuration .csv
 ### How config table is used:
 <img width="1771" height="518" alt="image" src="https://github.com/user-attachments/assets/73133a5a-1f94-4fec-910c-f7f52df83181" />
+
 ### Result example:
 
 ```json

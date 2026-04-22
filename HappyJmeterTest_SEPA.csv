@@ -1,0 +1,2 @@
+RawMessageHit,RawMessageNoHit,Instance,MessageType,Direction,HitProportion
+<MySEPA>HIT<MySEPA/>,<MySEPA>NoHIT</MySEPA>,SYS01::STAGE,ISO,OUT,0.01

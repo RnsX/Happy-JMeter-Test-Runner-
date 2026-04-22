@@ -1,6 +1,6 @@
 # Happy-JMeter-Test-Runner-
 ## Multiple system instance runs in parallel
-- Duplicate Thread Groups per system
+- Duplicate Thread Groups per system instance
 - Use per system specific .csv configuration file
 - Setup concurrency (threads) in each thread group (for different load per system instance)
 

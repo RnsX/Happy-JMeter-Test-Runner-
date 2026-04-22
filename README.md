@@ -8,7 +8,8 @@
 ### How config table is used:
 <img width="1771" height="518" alt="image" src="https://github.com/user-attachments/assets/73133a5a-1f94-4fec-910c-f7f52df83181" />
 ### Result example:
-```
+
+```json
 {
     "<MySEPA>NoHIT</MySEPA>|SYS01::STAGE|NO_HIT|OUT|ISO": 9897,
     "<MySWIFT>NoHIT</MySWIFT>|SYS02::STAGE|NO_HIT|OUT|MT": 9031,

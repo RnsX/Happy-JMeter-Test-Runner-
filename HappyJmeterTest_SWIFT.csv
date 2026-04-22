@@ -1,0 +1,2 @@
+RawMessageHit,RawMessageNoHit,Instance,MessageType,Direction,HitProportion
+<MySWIFT>HIT<MySWIFT/>,<MySWIFT>NoHIT</MySWIFT>,SYS02::STAGE,MT,OUT,0.1

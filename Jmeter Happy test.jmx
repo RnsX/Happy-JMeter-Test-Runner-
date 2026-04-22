@@ -1,0 +1,553 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Test Plan">
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+        <collectionProp name="Arguments.arguments"/>
+      </elementProp>
+    </TestPlan>
+    <hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Thread Group - Tenant 1 (SEPA)">
+        <stringProp name="TestPlan.comments">Duplicate and adjust settings to create multiple threads</stringProp>
+        <intProp name="ThreadGroup.num_threads">10</intProp>
+        <intProp name="ThreadGroup.ramp_time">1</intProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <stringProp name="LoopController.loops">1000</stringProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Payment templates &amp; settings">
+          <stringProp name="delimiter">,</stringProp>
+          <stringProp name="fileEncoding">UTF-8</stringProp>
+          <stringProp name="filename">/home/rnsxpc/Documents/Projects/HappyJMeter/HappyJmeterTest_SEPA.csv</stringProp>
+          <boolProp name="ignoreFirstLine">true</boolProp>
+          <boolProp name="quotedData">false</boolProp>
+          <boolProp name="recycle">true</boolProp>
+          <stringProp name="shareMode">shareMode.thread</stringProp>
+          <boolProp name="stopThread">false</boolProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="TestPlan.comments">Test run configuration file with following schema - [RawMessageNoHit, RawMessageHit, Instance, MessageType, Direction, HitProportion]</stringProp>
+        </CSVDataSet>
+        <hashTree/>
+        <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor - random hit/no hit message picker">
+          <stringProp name="scriptLanguage">groovy</stringProp>
+          <stringProp name="parameters"></stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="script">import java.util.concurrent.ThreadLocalRandom
+
+/*
+Expected JMeter vars from CSV Data Set Config:
+- RawMessageNoHit
+- RawMessageHit
+- HitProportion
+
+Outputs:
+- selectedPayload
+- selectedPayloadType   = HIT / NO_HIT
+- hitSelected           = true / false
+*/
+
+// Parse HitProportion robustly:
+// - if 0..1 =&gt; probability directly
+// - if 1..100 =&gt; treated as percentage
+double parseProbability(String raw) {
+    if (raw == null || raw.trim().isEmpty()) {
+        return 0.0d
+    }
+
+    double v = raw.trim().toDouble()
+
+    if (v &gt; 1.0d) {
+        v = v / 100.0d
+    }
+
+    if (v &lt; 0.0d) v = 0.0d
+    if (v &gt; 1.0d) v = 1.0d
+
+    return v
+}
+
+String rawMessageNoHit = vars.get(&quot;RawMessageNoHit&quot;)
+String rawMessageHit   = vars.get(&quot;RawMessageHit&quot;)
+double hitProbability  = parseProbability(vars.get(&quot;HitProportion&quot;))
+
+boolean useHit = ThreadLocalRandom.current().nextDouble() &lt; hitProbability
+String selectedPayload = useHit ? rawMessageHit : rawMessageNoHit
+
+vars.put(&quot;selectedPayload&quot;, selectedPayload ?: &quot;&quot;)
+vars.put(&quot;selectedPayloadType&quot;, useHit ? &quot;HIT&quot; : &quot;NO_HIT&quot;)
+vars.put(&quot;hitSelected&quot;, String.valueOf(useHit))
+
+// Optional: useful metadata passthrough
+vars.put(&quot;selectedInstance&quot;, vars.get(&quot;Instance&quot;) ?: &quot;&quot;)
+vars.put(&quot;selectedMessageType&quot;, vars.get(&quot;MessageType&quot;) ?: &quot;&quot;)
+vars.put(&quot;selectedDirection&quot;, vars.get(&quot;Direction&quot;) ?: &quot;&quot;)
+
+log.debug(&quot;Payload selected: ${vars.get(&apos;selectedPayloadType&apos;)}, HitProportion=${hitProbability}&quot;)</stringProp>
+          <stringProp name="TestPlan.comments">Selects messages given the HitProportion per parameter</stringProp>
+        </JSR223PreProcessor>
+        <hashTree/>
+        <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="AWS signature / header parameters">
+          <collectionProp name="Arguments.arguments">
+            <elementProp name="aws_host" elementType="Argument">
+              <stringProp name="Argument.name">aws_host</stringProp>
+              <stringProp name="Argument.value">my.com/address</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="aws_x_amz_security_token" elementType="Argument">
+              <stringProp name="Argument.name">aws_x_amz_security_token</stringProp>
+              <stringProp name="Argument.value">my-token-value-here</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+          </collectionProp>
+        </Arguments>
+        <hashTree/>
+        <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor (AWS Headers)">
+          <stringProp name="scriptLanguage">groovy</stringProp>
+          <stringProp name="parameters"></stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="script">/*
+ * JMeter JSR223 PreProcessor (Groovy)
+ * - Auto-generates x-amz-date (UTC)
+ * - Reads headers from HTTP Header Manager
+ *
+ * Outputs:
+ *   aws_x_amz_date
+ *   aws_date_stamp
+ *   aws_canonical_headers
+ *   aws_signed_headers
+ */
+
+import org.apache.jmeter.protocol.http.control.HeaderManager
+import java.time.ZonedDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+
+// --- Generate AWS timestamps ---
+def now = ZonedDateTime.now(ZoneOffset.UTC)
+
+def amzDate = now.format(DateTimeFormatter.ofPattern(&quot;yyyyMMdd&apos;T&apos;HHmmss&apos;Z&apos;&quot;))
+def dateStamp = now.format(DateTimeFormatter.ofPattern(&quot;yyyyMMdd&quot;))
+
+vars.put(&quot;aws_x_amz_date&quot;, amzDate)
+vars.put(&quot;aws_date_stamp&quot;, dateStamp)
+
+// --- Helpers ---
+String normalizeHeaderValue(def value) {
+    String s = value == null ? &quot;&quot; : value.toString()
+    return s.replaceAll(/\s+/, &quot; &quot;).trim()
+}
+
+void addHeader(Map&lt;String, String&gt; map, String name, def value) {
+    if (!name) return
+
+    String lowerName = name.trim().toLowerCase()
+    if (!lowerName) return
+
+    String normValue = normalizeHeaderValue(value)
+
+    if (map.containsKey(lowerName)) {
+        map[lowerName] = map[lowerName] + &quot;,&quot; + normValue
+    } else {
+        map[lowerName] = normValue
+    }
+}
+
+// --- Build header map ---
+def headers = new TreeMap&lt;String, String&gt;()
+
+addHeader(headers, &quot;host&quot;, vars.get(&quot;aws_host&quot;))
+addHeader(headers, &quot;x-amz-date&quot;, amzDate)
+
+// Optional payload hash
+if (vars.get(&quot;aws_x_amz_content_sha256&quot;)) {
+    addHeader(headers, &quot;x-amz-content-sha256&quot;, vars.get(&quot;aws_x_amz_content_sha256&quot;))
+}
+
+// Optional session token
+if (vars.get(&quot;aws_x_amz_security_token&quot;)) {
+    addHeader(headers, &quot;x-amz-security-token&quot;, vars.get(&quot;aws_x_amz_security_token&quot;))
+}
+
+// --- Pull headers from HTTP Header Manager ---
+HeaderManager hm = sampler.getHeaderManager()
+if (hm != null) {
+    hm.getHeaders().each { h -&gt;
+        addHeader(headers, h.getName(), h.getValue())
+    }
+}
+
+// --- Build canonical + signed headers ---
+String canonicalHeaders = headers.collect { k, v -&gt; &quot;${k}:${v}\n&quot; }.join(&quot;&quot;)
+String signedHeaders = headers.keySet().join(&quot;;&quot;)
+
+vars.put(&quot;aws_canonical_headers&quot;, canonicalHeaders)
+vars.put(&quot;aws_signed_headers&quot;, signedHeaders)
+
+// --- Logging ---
+log.info(&quot;AWS x-amz-date: ${amzDate}&quot;)
+log.info(&quot;AWS dateStamp: ${dateStamp}&quot;)
+log.info(&quot;AWS canonical headers:\n${canonicalHeaders}&quot;)
+log.info(&quot;AWS signed headers: ${signedHeaders}&quot;)</stringProp>
+          <stringProp name="TestPlan.comments">Generates AWS canonical headers (configure API keys and params in JMeter &quot;AWS signature / header parameters&quot;)</stringProp>
+        </JSR223PreProcessor>
+        <hashTree/>
+        <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+          <collectionProp name="HeaderManager.headers"/>
+        </HeaderManager>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="HTTP Request">
+          <stringProp name="HTTPSampler.domain">localhost</stringProp>
+          <stringProp name="HTTPSampler.port">3000</stringProp>
+          <stringProp name="HTTPSampler.protocol">http</stringProp>
+          <stringProp name="HTTPSampler.path">/value</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">${selectedPayload}|${selectedInstance}|${selectedPayloadType}|${selectedDirection}|${selectedMessageType}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <sentBytes>true</sentBytes>
+              <url>true</url>
+              <threadCounts>true</threadCounts>
+              <idleTime>true</idleTime>
+              <connectTime>true</connectTime>
+            </value>
+          </objProp>
+          <stringProp name="filename"></stringProp>
+        </ResultCollector>
+        <hashTree/>
+        <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <sentBytes>true</sentBytes>
+              <url>true</url>
+              <threadCounts>true</threadCounts>
+              <idleTime>true</idleTime>
+              <connectTime>true</connectTime>
+            </value>
+          </objProp>
+          <stringProp name="filename"></stringProp>
+        </ResultCollector>
+        <hashTree/>
+        <ResultCollector guiclass="GraphVisualizer" testclass="ResultCollector" testname="Graph Results">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <sentBytes>true</sentBytes>
+              <url>true</url>
+              <threadCounts>true</threadCounts>
+              <idleTime>true</idleTime>
+              <connectTime>true</connectTime>
+            </value>
+          </objProp>
+          <stringProp name="filename"></stringProp>
+        </ResultCollector>
+        <hashTree/>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Thread Group - Tenant 2 (SWIFT)">
+        <stringProp name="TestPlan.comments">Duplicate and adjust settings to create multiple threads</stringProp>
+        <intProp name="ThreadGroup.num_threads">10</intProp>
+        <intProp name="ThreadGroup.ramp_time">1</intProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <stringProp name="LoopController.loops">1000</stringProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Payment templates &amp; settings">
+          <stringProp name="delimiter">,</stringProp>
+          <stringProp name="fileEncoding">UTF-8</stringProp>
+          <stringProp name="filename">/home/rnsxpc/Documents/Projects/HappyJMeter/HappyJmeterTest_SWIFT.csv</stringProp>
+          <boolProp name="ignoreFirstLine">true</boolProp>
+          <boolProp name="quotedData">false</boolProp>
+          <boolProp name="recycle">true</boolProp>
+          <stringProp name="shareMode">shareMode.thread</stringProp>
+          <boolProp name="stopThread">false</boolProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="TestPlan.comments">Test run configuration file with following schema - [RawMessageNoHit, RawMessageHit, Instance, MessageType, Direction, HitProportion]</stringProp>
+        </CSVDataSet>
+        <hashTree/>
+        <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor - random hit/no hit message picker">
+          <stringProp name="scriptLanguage">groovy</stringProp>
+          <stringProp name="parameters"></stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="script">import java.util.concurrent.ThreadLocalRandom
+
+/*
+Expected JMeter vars from CSV Data Set Config:
+- RawMessageNoHit
+- RawMessageHit
+- HitProportion
+
+Outputs:
+- selectedPayload
+- selectedPayloadType   = HIT / NO_HIT
+- hitSelected           = true / false
+*/
+
+// Parse HitProportion robustly:
+// - if 0..1 =&gt; probability directly
+// - if 1..100 =&gt; treated as percentage
+double parseProbability(String raw) {
+    if (raw == null || raw.trim().isEmpty()) {
+        return 0.0d
+    }
+
+    double v = raw.trim().toDouble()
+
+    if (v &gt; 1.0d) {
+        v = v / 100.0d
+    }
+
+    if (v &lt; 0.0d) v = 0.0d
+    if (v &gt; 1.0d) v = 1.0d
+
+    return v
+}
+
+String rawMessageNoHit = vars.get(&quot;RawMessageNoHit&quot;)
+String rawMessageHit   = vars.get(&quot;RawMessageHit&quot;)
+double hitProbability  = parseProbability(vars.get(&quot;HitProportion&quot;))
+
+boolean useHit = ThreadLocalRandom.current().nextDouble() &lt; hitProbability
+String selectedPayload = useHit ? rawMessageHit : rawMessageNoHit
+
+vars.put(&quot;selectedPayload&quot;, selectedPayload ?: &quot;&quot;)
+vars.put(&quot;selectedPayloadType&quot;, useHit ? &quot;HIT&quot; : &quot;NO_HIT&quot;)
+vars.put(&quot;hitSelected&quot;, String.valueOf(useHit))
+
+// Optional: useful metadata passthrough
+vars.put(&quot;selectedInstance&quot;, vars.get(&quot;Instance&quot;) ?: &quot;&quot;)
+vars.put(&quot;selectedMessageType&quot;, vars.get(&quot;MessageType&quot;) ?: &quot;&quot;)
+vars.put(&quot;selectedDirection&quot;, vars.get(&quot;Direction&quot;) ?: &quot;&quot;)
+
+log.debug(&quot;Payload selected: ${vars.get(&apos;selectedPayloadType&apos;)}, HitProportion=${hitProbability}&quot;)</stringProp>
+          <stringProp name="TestPlan.comments">Selects messages given the HitProportion per parameter</stringProp>
+        </JSR223PreProcessor>
+        <hashTree/>
+        <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="AWS signature / header parameters">
+          <collectionProp name="Arguments.arguments">
+            <elementProp name="aws_host" elementType="Argument">
+              <stringProp name="Argument.name">aws_host</stringProp>
+              <stringProp name="Argument.value">my.com/address</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="aws_x_amz_security_token" elementType="Argument">
+              <stringProp name="Argument.name">aws_x_amz_security_token</stringProp>
+              <stringProp name="Argument.value">my-token-value-here</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+          </collectionProp>
+        </Arguments>
+        <hashTree/>
+        <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor (AWS Headers)">
+          <stringProp name="scriptLanguage">groovy</stringProp>
+          <stringProp name="parameters"></stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="script">/*
+ * JMeter JSR223 PreProcessor (Groovy)
+ * - Auto-generates x-amz-date (UTC)
+ * - Reads headers from HTTP Header Manager
+ *
+ * Outputs:
+ *   aws_x_amz_date
+ *   aws_date_stamp
+ *   aws_canonical_headers
+ *   aws_signed_headers
+ */
+
+import org.apache.jmeter.protocol.http.control.HeaderManager
+import java.time.ZonedDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+
+// --- Generate AWS timestamps ---
+def now = ZonedDateTime.now(ZoneOffset.UTC)
+
+def amzDate = now.format(DateTimeFormatter.ofPattern(&quot;yyyyMMdd&apos;T&apos;HHmmss&apos;Z&apos;&quot;))
+def dateStamp = now.format(DateTimeFormatter.ofPattern(&quot;yyyyMMdd&quot;))
+
+vars.put(&quot;aws_x_amz_date&quot;, amzDate)
+vars.put(&quot;aws_date_stamp&quot;, dateStamp)
+
+// --- Helpers ---
+String normalizeHeaderValue(def value) {
+    String s = value == null ? &quot;&quot; : value.toString()
+    return s.replaceAll(/\s+/, &quot; &quot;).trim()
+}
+
+void addHeader(Map&lt;String, String&gt; map, String name, def value) {
+    if (!name) return
+
+    String lowerName = name.trim().toLowerCase()
+    if (!lowerName) return
+
+    String normValue = normalizeHeaderValue(value)
+
+    if (map.containsKey(lowerName)) {
+        map[lowerName] = map[lowerName] + &quot;,&quot; + normValue
+    } else {
+        map[lowerName] = normValue
+    }
+}
+
+// --- Build header map ---
+def headers = new TreeMap&lt;String, String&gt;()
+
+addHeader(headers, &quot;host&quot;, vars.get(&quot;aws_host&quot;))
+addHeader(headers, &quot;x-amz-date&quot;, amzDate)
+
+// Optional payload hash
+if (vars.get(&quot;aws_x_amz_content_sha256&quot;)) {
+    addHeader(headers, &quot;x-amz-content-sha256&quot;, vars.get(&quot;aws_x_amz_content_sha256&quot;))
+}
+
+// Optional session token
+if (vars.get(&quot;aws_x_amz_security_token&quot;)) {
+    addHeader(headers, &quot;x-amz-security-token&quot;, vars.get(&quot;aws_x_amz_security_token&quot;))
+}
+
+// --- Pull headers from HTTP Header Manager ---
+HeaderManager hm = sampler.getHeaderManager()
+if (hm != null) {
+    hm.getHeaders().each { h -&gt;
+        addHeader(headers, h.getName(), h.getValue())
+    }
+}
+
+// --- Build canonical + signed headers ---
+String canonicalHeaders = headers.collect { k, v -&gt; &quot;${k}:${v}\n&quot; }.join(&quot;&quot;)
+String signedHeaders = headers.keySet().join(&quot;;&quot;)
+
+vars.put(&quot;aws_canonical_headers&quot;, canonicalHeaders)
+vars.put(&quot;aws_signed_headers&quot;, signedHeaders)
+
+// --- Logging ---
+log.info(&quot;AWS x-amz-date: ${amzDate}&quot;)
+log.info(&quot;AWS dateStamp: ${dateStamp}&quot;)
+log.info(&quot;AWS canonical headers:\n${canonicalHeaders}&quot;)
+log.info(&quot;AWS signed headers: ${signedHeaders}&quot;)</stringProp>
+          <stringProp name="TestPlan.comments">Generates AWS canonical headers (configure API keys and params in JMeter &quot;AWS signature / header parameters&quot;)</stringProp>
+        </JSR223PreProcessor>
+        <hashTree/>
+        <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+          <collectionProp name="HeaderManager.headers"/>
+        </HeaderManager>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="HTTP Request">
+          <stringProp name="HTTPSampler.domain">localhost</stringProp>
+          <stringProp name="HTTPSampler.port">3000</stringProp>
+          <stringProp name="HTTPSampler.protocol">http</stringProp>
+          <stringProp name="HTTPSampler.path">/value</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">${selectedPayload}|${selectedInstance}|${selectedPayloadType}|${selectedDirection}|${selectedMessageType}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

@@ -5,6 +5,8 @@
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments"/>
       </elementProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
     </TestPlan>
     <hashTree>
       <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Thread Group - Tenant 1 (SEPA)">
@@ -14,12 +16,16 @@
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
-          <stringProp name="LoopController.loops">1000</stringProp>
+          <stringProp name="LoopController.loops">10</stringProp>
           <boolProp name="LoopController.continue_forever">false</boolProp>
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Payment templates &amp; settings" enabled="true">
+        <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+          <collectionProp name="HeaderManager.headers"/>
+        </HeaderManager>
+        <hashTree/>
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Payment templates &amp; settings">
           <stringProp name="delimiter">,</stringProp>
           <stringProp name="fileEncoding">UTF-8</stringProp>
           <stringProp name="filename">/home/rnsxpc/Documents/Projects/HappyJMeter/HappyJmeterTest_SEPA.csv</stringProp>
@@ -96,15 +102,11 @@ log.debug(&quot;Payload selected: ${vars.get(&apos;selectedPayloadType&apos;)}, 
           <stringProp name="parameters"></stringProp>
           <stringProp name="filename"></stringProp>
           <stringProp name="cacheKey">true</stringProp>
-          <stringProp name="script">// Generate dynamic values if needed
-def requestId = UUID.randomUUID().toString()
-def timestamp = new Date().format(&quot;yyyy-MM-dd&apos;T&apos;HH:mm:ssXXX&quot;)
-
-// Build XML body
+          <stringProp name="script">// Build XML body
 def body = &quot;&quot;&quot;
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
 &lt;Request&gt;
-    ${selectedPayload}|${selectedInstance}|${selectedPayloadType}|${selectedDirection}|${selectedMessageType}
+    ${selectedPayload}|${selectedInstance}|${selectedPayloadType}|${selectedDirection}|${selectedMessageType}|${System}
 &lt;/Request&gt;
 &quot;&quot;&quot;
 
@@ -112,26 +114,26 @@ def body = &quot;&quot;&quot;
 vars.put(&quot;request_body&quot;, body)</stringProp>
         </JSR223PreProcessor>
         <hashTree/>
-        <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="AWS signature / header parameters">
+        <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="Header configuration">
           <collectionProp name="Arguments.arguments">
             <elementProp name="aws_access_key" elementType="Argument">
               <stringProp name="Argument.name">aws_access_key</stringProp>
-              <stringProp name="Argument.value"></stringProp>
+              <stringProp name="Argument.value">my_key</stringProp>
               <stringProp name="Argument.metadata">=</stringProp>
             </elementProp>
             <elementProp name="aws_secret_key" elementType="Argument">
               <stringProp name="Argument.name">aws_secret_key</stringProp>
-              <stringProp name="Argument.value"></stringProp>
+              <stringProp name="Argument.value">my_secret</stringProp>
               <stringProp name="Argument.metadata">=</stringProp>
             </elementProp>
             <elementProp name="aws_region" elementType="Argument">
               <stringProp name="Argument.name">aws_region</stringProp>
-              <stringProp name="Argument.value"></stringProp>
+              <stringProp name="Argument.value">eu-central-1</stringProp>
               <stringProp name="Argument.metadata">=</stringProp>
             </elementProp>
             <elementProp name="aws_service" elementType="Argument">
               <stringProp name="Argument.name">aws_service</stringProp>
-              <stringProp name="Argument.value"></stringProp>
+              <stringProp name="Argument.value">my_service_name</stringProp>
               <stringProp name="Argument.metadata">=</stringProp>
             </elementProp>
             <elementProp name="aws_method" elementType="Argument">
@@ -141,24 +143,23 @@ vars.put(&quot;request_body&quot;, body)</stringProp>
             </elementProp>
             <elementProp name="aws_endpoint" elementType="Argument">
               <stringProp name="Argument.name">aws_endpoint</stringProp>
-              <stringProp name="Argument.value"></stringProp>
+              <stringProp name="Argument.value">http://localhost:3000/</stringProp>
               <stringProp name="Argument.metadata">=</stringProp>
             </elementProp>
-            <elementProp name="aws_session_token" elementType="Argument">
-              <stringProp name="Argument.name">aws_session_token</stringProp>
-              <stringProp name="Argument.value"></stringProp>
+            <elementProp name="content_type" elementType="Argument">
+              <stringProp name="Argument.name">content_type</stringProp>
+              <stringProp name="Argument.value">application/soap+xml</stringProp>
               <stringProp name="Argument.metadata">=</stringProp>
             </elementProp>
-            <elementProp name="aws_signed_headers_extra" elementType="Argument">
-              <stringProp name="Argument.name">aws_signed_headers_extra</stringProp>
-              <stringProp name="Argument.value"></stringProp>
+            <elementProp name="soap_action" elementType="Argument">
+              <stringProp name="Argument.name">soap_action</stringProp>
+              <stringProp name="Argument.value">my_soap_action</stringProp>
               <stringProp name="Argument.metadata">=</stringProp>
-              <stringProp name="Argument.desc"></stringProp>
             </elementProp>
           </collectionProp>
         </Arguments>
         <hashTree/>
-        <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor (AWS Headers)">
+        <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor (AWS Signature)">
           <stringProp name="scriptLanguage">groovy</stringProp>
           <stringProp name="parameters"></stringProp>
           <stringProp name="filename"></stringProp>
@@ -172,42 +173,9 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.net.URI
 import java.net.URLEncoder
+import org.apache.jmeter.protocol.http.control.Header
+import org.apache.jmeter.protocol.http.control.HeaderManager
 
-// ================================
-// Required JMeter variables
-// ================================
-// aws_access_key
-// aws_secret_key
-// aws_region
-// aws_service
-//
-// Usually also set:
-// aws_method           -&gt; GET / POST / PUT / DELETE ...
-// aws_endpoint         -&gt; full URL, e.g. https://execute-api.eu-west-1.amazonaws.com/prod/items?x=1
-//
-// Optional:
-// aws_payload          -&gt; request body as string; default &quot;&quot;
-// aws_session_token    -&gt; for temporary credentials only
-// aws_signed_headers_extra -&gt; extra canonical headers, one per line, format: header-name:header-value
-//                             Example:
-//                             content-type:application/json
-//                             x-amz-target:SomeService.SomeAction
-//
-// Outputs created by this script:
-// aws_amz_date
-// aws_date_stamp
-// aws_payload_hash
-// aws_canonical_request
-// aws_string_to_sign
-// aws_signature
-// aws_authorization
-// aws_host
-// aws_canonical_uri
-// aws_canonical_querystring
-
-// ================================
-// Helpers
-// ================================
 String sha256Hex(String data) {
     MessageDigest md = MessageDigest.getInstance(&quot;SHA-256&quot;)
     byte[] digest = md.digest(data.getBytes(StandardCharsets.UTF_8))
@@ -224,7 +192,6 @@ String bytesToHex(byte[] bytes) {
     bytes.collect { String.format(&quot;%02x&quot;, it) }.join()
 }
 
-// AWS percent-encoding rules for SigV4
 String awsEncode(String value, boolean path) {
     String encoded = URLEncoder.encode(value, &quot;UTF-8&quot;)
             .replace(&quot;+&quot;, &quot;%20&quot;)
@@ -236,19 +203,16 @@ String awsEncode(String value, boolean path) {
     return encoded
 }
 
-// Canonical URI: encode each path segment but preserve /
 String canonicalUri(String rawPath) {
     if (rawPath == null || rawPath.isEmpty()) {
         return &quot;/&quot;
     }
-    // Encode, preserving slash separators
     return rawPath.split(&quot;/&quot;, -1)
             .collect { awsEncode(it, false) }
             .join(&quot;/&quot;)
             .with { it.startsWith(&quot;/&quot;) ? it : &quot;/&quot; + it }
 }
 
-// Canonical query string: sort by encoded key, then encoded value
 String canonicalQueryString(String rawQuery) {
     if (rawQuery == null || rawQuery.trim().isEmpty()) {
         return &quot;&quot;
@@ -256,16 +220,10 @@ String canonicalQueryString(String rawQuery) {
 
     List&lt;Map&gt; pairs = []
     rawQuery.split(&quot;&amp;&quot;).each { part -&gt;
-        String key
-        String value
         int idx = part.indexOf(&quot;=&quot;)
-        if (idx &gt;= 0) {
-            key = part.substring(0, idx)
-            value = part.substring(idx + 1)
-        } else {
-            key = part
-            value = &quot;&quot;
-        }
+        String key = idx &gt;= 0 ? part.substring(0, idx) : part
+        String value = idx &gt;= 0 ? part.substring(idx + 1) : &quot;&quot;
+
         pairs &lt;&lt; [
                 k: awsEncode(key, false),
                 v: awsEncode(value, false)
@@ -280,14 +238,10 @@ String canonicalQueryString(String rawQuery) {
     return pairs.collect { &quot;${it.k}=${it.v}&quot; }.join(&quot;&amp;&quot;)
 }
 
-// Normalize header value: trim and collapse internal spaces
 String normalizeHeaderValue(String s) {
     return s == null ? &quot;&quot; : s.trim().replaceAll(&quot;\\s+&quot;, &quot; &quot;)
 }
 
-// ================================
-// Read inputs
-// ================================
 String accessKey    = vars.get(&quot;aws_access_key&quot;)
 String secretKey    = vars.get(&quot;aws_secret_key&quot;)
 String region       = vars.get(&quot;aws_region&quot;)
@@ -297,29 +251,23 @@ String endpoint     = vars.get(&quot;aws_endpoint&quot;)
 String payload      = vars.get(&quot;request_body&quot;) ?: &quot;&quot;
 String sessionToken = vars.get(&quot;aws_session_token&quot;) ?: &quot;&quot;
 String extraHeaders = vars.get(&quot;aws_signed_headers_extra&quot;) ?: &quot;&quot;
+String contentType  = vars.get(&quot;content_type&quot;) ?: &quot;&quot;
+String soapAction   = vars.get(&quot;soap_action&quot;) ?: &quot;&quot;
 
-// Basic validation
 if (!accessKey || !secretKey || !region || !service || !endpoint) {
     throw new IllegalArgumentException(
         &quot;Missing one of required vars: aws_access_key, aws_secret_key, aws_region, aws_service, aws_endpoint&quot;
     )
 }
 
-// ================================
-// Timestamp
-// ================================
 ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC)
 String amzDate   = now.format(DateTimeFormatter.ofPattern(&quot;yyyyMMdd&apos;T&apos;HHmmss&apos;Z&apos;&quot;))
 String dateStamp = now.format(DateTimeFormatter.ofPattern(&quot;yyyyMMdd&quot;))
 
-// ================================
-// Parse URL
-// ================================
 URI uri = new URI(endpoint)
 String host = uri.getHost()
 int port = uri.getPort()
 
-// Include port in host only if non-default
 String hostHeader = host
 if (port != -1 &amp;&amp;
     !((uri.getScheme() == &quot;https&quot; &amp;&amp; port == 443) || (uri.getScheme() == &quot;http&quot; &amp;&amp; port == 80))) {
@@ -329,49 +277,46 @@ if (port != -1 &amp;&amp;
 String canonicalURI = canonicalUri(uri.getRawPath())
 String canonicalQS  = canonicalQueryString(uri.getRawQuery())
 
-// ================================
-// Payload hash
-// ================================
 String payloadHash = sha256Hex(payload)
+int byteLength = payload.getBytes(StandardCharsets.UTF_8).length
 
-// ================================
-// Canonical headers
-// ================================
 Map&lt;String, String&gt; headersToSign = new TreeMap&lt;&gt;()
 
 headersToSign[&quot;host&quot;] = hostHeader
 headersToSign[&quot;x-amz-date&quot;] = amzDate
+headersToSign[&quot;x-amz-content-sha256&quot;] = payloadHash
 
 if (sessionToken) {
     headersToSign[&quot;x-amz-security-token&quot;] = sessionToken
 }
 
-// Add any extra signed headers supplied via JMeter variable
-// Format:
-// header1:value1
-// header2:value2
+if (contentType) {
+    headersToSign[&quot;content-type&quot;] = normalizeHeaderValue(contentType)
+}
+
+if (soapAction) {
+    headersToSign[&quot;soapaction&quot;] = normalizeHeaderValue(soapAction)
+}
+
 extraHeaders.split(&quot;\\r?\\n&quot;).each { line -&gt;
     if (line?.trim()) {
         int idx = line.indexOf(&quot;:&quot;)
         if (idx &lt;= 0) {
             throw new IllegalArgumentException(&quot;Invalid aws_signed_headers_extra line: ${line}&quot;)
         }
+
         String hName = line.substring(0, idx).trim().toLowerCase(Locale.ROOT)
         String hVal  = normalizeHeaderValue(line.substring(idx + 1))
         headersToSign[hName] = hVal
     }
 }
 
-// Build canonical headers + signed headers
 String canonicalHeaders = headersToSign.collect { k, v -&gt;
     &quot;${k}:${normalizeHeaderValue(v)}\n&quot;
 }.join(&quot;&quot;)
 
 String signedHeaders = headersToSign.keySet().join(&quot;;&quot;)
 
-// ================================
-// Canonical request
-// ================================
 String canonicalRequest =
         method.toUpperCase(Locale.ROOT) + &quot;\n&quot; +
         canonicalURI + &quot;\n&quot; +
@@ -382,15 +327,13 @@ String canonicalRequest =
 
 String algorithm = &quot;AWS4-HMAC-SHA256&quot;
 String credentialScope = &quot;${dateStamp}/${region}/${service}/aws4_request&quot;
+
 String stringToSign =
         algorithm + &quot;\n&quot; +
         amzDate + &quot;\n&quot; +
         credentialScope + &quot;\n&quot; +
         sha256Hex(canonicalRequest)
 
-// ================================
-// Signing key
-// ================================
 byte[] kSecret  = (&quot;AWS4&quot; + secretKey).getBytes(StandardCharsets.UTF_8)
 byte[] kDate    = hmacSha256(kSecret, dateStamp)
 byte[] kRegion  = hmacSha256(kDate, region)
@@ -405,9 +348,6 @@ String authorizationHeader =
         &quot;SignedHeaders=${signedHeaders}, &quot; +
         &quot;Signature=${signature}&quot;
 
-// ================================
-// Save outputs for later use
-// ================================
 vars.put(&quot;aws_amz_date&quot;, amzDate)
 vars.put(&quot;aws_date_stamp&quot;, dateStamp)
 vars.put(&quot;aws_host&quot;, hostHeader)
@@ -418,59 +358,84 @@ vars.put(&quot;aws_canonical_request&quot;, canonicalRequest)
 vars.put(&quot;aws_string_to_sign&quot;, stringToSign)
 vars.put(&quot;aws_signature&quot;, signature)
 vars.put(&quot;aws_authorization&quot;, authorizationHeader)
+vars.put(&quot;request_body_length&quot;, String.valueOf(byteLength))
 
-// Optional logging for debug
+// Updrate: adding headers through grovy
+import org.apache.jmeter.protocol.http.control.Header
+import org.apache.jmeter.protocol.http.control.HeaderManager
+
+HeaderManager hm = sampler.getHeaderManager()
+
+if (hm == null) {
+    hm = new HeaderManager()
+    sampler.setHeaderManager(hm)
+}
+
+def setHeader = { name, value -&gt;
+    if (value != null) {
+        String v = value.toString().trim()
+        if (!v.isEmpty()) {
+            hm.removeHeaderNamed(name)
+            hm.add(new Header(name, v))
+        }
+    }
+}
+
+// remove first, so final order is controlled
+[
+    &quot;Content-Type&quot;,
+    &quot;SOAPAction&quot;,
+    &quot;x-amz-content-sha256&quot;,
+    &quot;x-amz-date&quot;,
+    &quot;Authorization&quot;
+].each { hm.removeHeaderNamed(it) }
+
+// TODO: check if capital letters for AWS headers required 
+// add in required order
+setHeader(&quot;Content-Type&quot;, vars.get(&quot;content_type&quot;))
+setHeader(&quot;SOAPAction&quot;, vars.get(&quot;soap_action&quot;))
+setHeader(&quot;X-Amz-Content-Sha256&quot;, vars.get(&quot;aws_payload_hash&quot;))
+setHeader(&quot;X-Amz-Date&quot;, vars.get(&quot;aws_amz_date&quot;))
+setHeader(&quot;Authorization&quot;, vars.get(&quot;aws_authorization&quot;))
+
 log.info(&quot;AWS SigV4 generated for endpoint=${endpoint}&quot;)
 log.debug(&quot;aws_amz_date=&quot; + amzDate)
 log.debug(&quot;aws_authorization=&quot; + authorizationHeader)</stringProp>
-          <stringProp name="TestPlan.comments">Generates AWS canonical headers (configure API keys and params in JMeter &quot;AWS signature / header parameters&quot;)</stringProp>
+          <stringProp name="TestPlan.comments">Generates canonical signature</stringProp>
         </JSR223PreProcessor>
         <hashTree/>
-        <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
-          <collectionProp name="HeaderManager.headers">
-            <elementProp name="" elementType="Header">
-              <stringProp name="Header.name"></stringProp>
-              <stringProp name="Header.value">${aws_amz_date}</stringProp>
-            </elementProp>
-            <elementProp name="" elementType="Header">
-              <stringProp name="Header.name"></stringProp>
-              <stringProp name="Header.value">${aws_date_stamp}</stringProp>
-            </elementProp>
-            <elementProp name="" elementType="Header">
-              <stringProp name="Header.name"></stringProp>
-              <stringProp name="Header.value">${aws_host}</stringProp>
-            </elementProp>
-            <elementProp name="" elementType="Header">
-              <stringProp name="Header.name"></stringProp>
-              <stringProp name="Header.value">${aws_payload_hash}</stringProp>
-            </elementProp>
-            <elementProp name="" elementType="Header">
-              <stringProp name="Header.name"></stringProp>
-              <stringProp name="Header.value">${aws_canonical_uri}</stringProp>
-            </elementProp>
-            <elementProp name="" elementType="Header">
-              <stringProp name="Header.name"></stringProp>
-              <stringProp name="Header.value">${aws_canonical_querystring}</stringProp>
-            </elementProp>
-            <elementProp name="" elementType="Header">
-              <stringProp name="Header.name"></stringProp>
-              <stringProp name="Header.value">${aws_canonical_request}</stringProp>
-            </elementProp>
-            <elementProp name="" elementType="Header">
-              <stringProp name="Header.name"></stringProp>
-              <stringProp name="Header.value">${aws_string_to_sign}</stringProp>
-            </elementProp>
-            <elementProp name="" elementType="Header">
-              <stringProp name="Header.name"></stringProp>
-              <stringProp name="Header.value">${aws_signature}</stringProp>
-            </elementProp>
-            <elementProp name="" elementType="Header">
-              <stringProp name="Header.name"></stringProp>
-              <stringProp name="Header.value">${aws_authorization}</stringProp>
-            </elementProp>
-          </collectionProp>
-          <stringProp name="TestPlan.comments">Add names specific to the system</stringProp>
-        </HeaderManager>
+        <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor (Header builder)" enabled="false">
+          <stringProp name="scriptLanguage">groovy</stringProp>
+          <stringProp name="parameters"></stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="script">import org.apache.jmeter.protocol.http.control.Header
+import org.apache.jmeter.protocol.http.control.HeaderManager
+
+HeaderManager hm = sampler.getHeaderManager()
+
+if (hm == null) {
+    hm = new HeaderManager()
+    sampler.setHeaderManager(hm)
+}
+
+def setHeader = { name, value -&gt;
+    if (value != null &amp;&amp; value != &quot;&quot;) {
+        hm.removeHeaderNamed(name)
+        hm.add(new Header(name, value))
+    }
+}
+
+setHeader(&quot;Authorization&quot;, authorizationHeader)
+setHeader(&quot;x-amz-date&quot;, amzDate)
+setHeader(&quot;x-amz-content-sha256&quot;, payloadHash)
+setHeader(&quot;Host&quot;, hostHeader)
+setHeader(&quot;x-amz-security-token&quot;, sessionToken)
+setHeader(&quot;Content-Type&quot;, contentType)
+setHeader(&quot;SOAPAction&quot;, soapAction)
+setHeader(&quot;Content-Length&quot;, String.valueOf(byteLength))</stringProp>
+          <stringProp name="TestPlan.comments">Builds AWS signature headers</stringProp>
+        </JSR223PreProcessor>
         <hashTree/>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="HTTP Request">
           <stringProp name="TestPlan.comments">Update for system specific</stringProp>
@@ -493,7 +458,7 @@ log.debug(&quot;aws_authorization=&quot; + authorizationHeader)</stringProp>
           </elementProp>
         </HTTPSamplerProxy>
         <hashTree/>
-        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
+        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
           <boolProp name="ResultCollector.error_logging">false</boolProp>
           <objProp>
             <name>saveConfig</name>
@@ -530,7 +495,7 @@ log.debug(&quot;aws_authorization=&quot; + authorizationHeader)</stringProp>
           <stringProp name="filename"></stringProp>
         </ResultCollector>
         <hashTree/>
-        <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report" enabled="true">
+        <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report">
           <boolProp name="ResultCollector.error_logging">false</boolProp>
           <objProp>
             <name>saveConfig</name>
@@ -567,7 +532,7 @@ log.debug(&quot;aws_authorization=&quot; + authorizationHeader)</stringProp>
           <stringProp name="filename"></stringProp>
         </ResultCollector>
         <hashTree/>
-        <ResultCollector guiclass="GraphVisualizer" testclass="ResultCollector" testname="Graph Results" enabled="true">
+        <ResultCollector guiclass="GraphVisualizer" testclass="ResultCollector" testname="Graph Results">
           <boolProp name="ResultCollector.error_logging">false</boolProp>
           <objProp>
             <name>saveConfig</name>

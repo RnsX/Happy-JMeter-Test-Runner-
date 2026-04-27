@@ -404,39 +404,6 @@ log.debug(&quot;aws_authorization=&quot; + authorizationHeader)</stringProp>
           <stringProp name="TestPlan.comments">Generates canonical signature</stringProp>
         </JSR223PreProcessor>
         <hashTree/>
-        <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor (Header builder)" enabled="false">
-          <stringProp name="scriptLanguage">groovy</stringProp>
-          <stringProp name="parameters"></stringProp>
-          <stringProp name="filename"></stringProp>
-          <stringProp name="cacheKey">true</stringProp>
-          <stringProp name="script">import org.apache.jmeter.protocol.http.control.Header
-import org.apache.jmeter.protocol.http.control.HeaderManager
-
-HeaderManager hm = sampler.getHeaderManager()
-
-if (hm == null) {
-    hm = new HeaderManager()
-    sampler.setHeaderManager(hm)
-}
-
-def setHeader = { name, value -&gt;
-    if (value != null &amp;&amp; value != &quot;&quot;) {
-        hm.removeHeaderNamed(name)
-        hm.add(new Header(name, value))
-    }
-}
-
-setHeader(&quot;Authorization&quot;, authorizationHeader)
-setHeader(&quot;x-amz-date&quot;, amzDate)
-setHeader(&quot;x-amz-content-sha256&quot;, payloadHash)
-setHeader(&quot;Host&quot;, hostHeader)
-setHeader(&quot;x-amz-security-token&quot;, sessionToken)
-setHeader(&quot;Content-Type&quot;, contentType)
-setHeader(&quot;SOAPAction&quot;, soapAction)
-setHeader(&quot;Content-Length&quot;, String.valueOf(byteLength))</stringProp>
-          <stringProp name="TestPlan.comments">Builds AWS signature headers</stringProp>
-        </JSR223PreProcessor>
-        <hashTree/>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="HTTP Request">
           <stringProp name="TestPlan.comments">Update for system specific</stringProp>
           <stringProp name="HTTPSampler.domain">localhost</stringProp>

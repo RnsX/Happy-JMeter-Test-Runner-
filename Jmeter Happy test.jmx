@@ -21,7 +21,7 @@
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+        <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
           <collectionProp name="HeaderManager.headers"/>
         </HeaderManager>
         <hashTree/>
@@ -154,6 +154,12 @@ vars.put(&quot;request_body&quot;, body)</stringProp>
             <elementProp name="soap_action" elementType="Argument">
               <stringProp name="Argument.name">soap_action</stringProp>
               <stringProp name="Argument.value">my_soap_action</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="LoggerEnabled" elementType="Argument">
+              <stringProp name="Argument.name">LoggerEnabled</stringProp>
+              <stringProp name="Argument.value">YES</stringProp>
+              <stringProp name="Argument.desc">YES if responses sould be logged, NO if not</stringProp>
               <stringProp name="Argument.metadata">=</stringProp>
             </elementProp>
           </collectionProp>
@@ -425,7 +431,40 @@ log.debug(&quot;aws_authorization=&quot; + authorizationHeader)</stringProp>
           </elementProp>
         </HTTPSamplerProxy>
         <hashTree/>
-        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
+        <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="JSR223 PostProcessor (log results)">
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="parameters"></stringProp>
+          <stringProp name="script">def loggerEnabled = vars.get(&quot;LoggerEnabled&quot;)
+
+if (loggerEnabled?.trim()?.equalsIgnoreCase(&quot;YES&quot;)) {
+    def samplerName = prev.getSampleLabel()
+    def url = prev.getURL()
+    def responseCode = prev.getResponseCode()
+    def responseMessage = prev.getResponseMessage()
+    def responseTime = prev.getTime()
+    def responseHeaders = prev.getResponseHeaders()
+    def responseBody = prev.getResponseDataAsString()
+
+    log.info(&quot;&quot;&quot;
+================ HTTP RESPONSE ================
+Sampler: ${samplerName}
+URL: ${url}
+Status: ${responseCode} ${responseMessage}
+Response time: ${responseTime} ms
+
+--- Response Headers ---
+${responseHeaders}
+
+--- Response Body ---
+${responseBody}
+===============================================
+&quot;&quot;&quot;)
+}</stringProp>
+          <stringProp name="scriptLanguage">groovy</stringProp>
+        </JSR223PostProcessor>
+        <hashTree/>
+        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
           <boolProp name="ResultCollector.error_logging">false</boolProp>
           <objProp>
             <name>saveConfig</name>
@@ -462,7 +501,7 @@ log.debug(&quot;aws_authorization=&quot; + authorizationHeader)</stringProp>
           <stringProp name="filename"></stringProp>
         </ResultCollector>
         <hashTree/>
-        <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report">
+        <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report" enabled="true">
           <boolProp name="ResultCollector.error_logging">false</boolProp>
           <objProp>
             <name>saveConfig</name>
@@ -499,7 +538,7 @@ log.debug(&quot;aws_authorization=&quot; + authorizationHeader)</stringProp>
           <stringProp name="filename"></stringProp>
         </ResultCollector>
         <hashTree/>
-        <ResultCollector guiclass="GraphVisualizer" testclass="ResultCollector" testname="Graph Results">
+        <ResultCollector guiclass="GraphVisualizer" testclass="ResultCollector" testname="Graph Results" enabled="true">
           <boolProp name="ResultCollector.error_logging">false</boolProp>
           <objProp>
             <name>saveConfig</name>

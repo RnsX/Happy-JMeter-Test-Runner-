@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Payment Screening Performance Test">
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="Configuration">
+        <collectionProp name="Arguments.arguments">
+          <elementProp name="TOKEN_PROTOCOL" elementType="Argument">
+            <stringProp name="Argument.name">TOKEN_PROTOCOL</stringProp>
+            <stringProp name="Argument.value">https</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="TOKEN_HOST" elementType="Argument">
+            <stringProp name="Argument.name">TOKEN_HOST</stringProp>
+            <stringProp name="Argument.value">localhost</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="TOKEN_PORT" elementType="Argument">
+            <stringProp name="Argument.name">TOKEN_PORT</stringProp>
+            <stringProp name="Argument.value"></stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="TOKEN_PATH" elementType="Argument">
+            <stringProp name="Argument.name">TOKEN_PATH</stringProp>
+            <stringProp name="Argument.value">/oauth/token</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="CLIENT_ID" elementType="Argument">
+            <stringProp name="Argument.name">CLIENT_ID</stringProp>
+            <stringProp name="Argument.value"></stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="CLIENT_SECRET" elementType="Argument">
+            <stringProp name="Argument.name">CLIENT_SECRET</stringProp>
+            <stringProp name="Argument.value"></stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="SCREEN_PROTOCOL" elementType="Argument">
+            <stringProp name="Argument.name">SCREEN_PROTOCOL</stringProp>
+            <stringProp name="Argument.value">https</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="SCREEN_HOST" elementType="Argument">
+            <stringProp name="Argument.name">SCREEN_HOST</stringProp>
+            <stringProp name="Argument.value">localhost</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="SCREEN_PORT" elementType="Argument">
+            <stringProp name="Argument.name">SCREEN_PORT</stringProp>
+            <stringProp name="Argument.value"></stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="SCREEN_PATH" elementType="Argument">
+            <stringProp name="Argument.name">SCREEN_PATH</stringProp>
+            <stringProp name="Argument.value">/payments/screen</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="BAD_ACTOR_EVERY_N" elementType="Argument">
+            <stringProp name="Argument.name">BAD_ACTOR_EVERY_N</stringProp>
+            <stringProp name="Argument.value">10000</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="TOKEN_EXPIRY_SAFETY_SECONDS" elementType="Argument">
+            <stringProp name="Argument.name">TOKEN_EXPIRY_SAFETY_SECONDS</stringProp>
+            <stringProp name="Argument.value">5</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="DEFAULT_TOKEN_EXPIRY_SECONDS" elementType="Argument">
+            <stringProp name="Argument.name">DEFAULT_TOKEN_EXPIRY_SECONDS</stringProp>
+            <stringProp name="Argument.value">30</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="GOOD_PAYMENT_BODY" elementType="Argument">
+            <stringProp name="Argument.name">GOOD_PAYMENT_BODY</stringProp>
+            <stringProp name="Argument.value">&lt;payment&gt;Trusted Merchant&lt;/payment&gt;</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="BAD_PAYMENT_BODY" elementType="Argument">
+            <stringProp name="Argument.name">BAD_PAYMENT_BODY</stringProp>
+            <stringProp name="Argument.value">&lt;payment&gt;Bad Actor&lt;/payment&gt;</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="THREADS" elementType="Argument">
+            <stringProp name="Argument.name">THREADS</stringProp>
+            <stringProp name="Argument.value">1</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="RAMP_SECONDS" elementType="Argument">
+            <stringProp name="Argument.name">RAMP_SECONDS</stringProp>
+            <stringProp name="Argument.value">1</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="ITERATIONS" elementType="Argument">
+            <stringProp name="Argument.name">ITERATIONS</stringProp>
+            <stringProp name="Argument.value">1</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+        </collectionProp>
+      </elementProp>
+    </TestPlan>
+    <hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Payment Screening Load">
+        <stringProp name="ThreadGroup.num_threads">${THREADS}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${RAMP_SECONDS}</stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <stringProp name="LoopController.loops">${ITERATIONS}</stringProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="Fetch token when missing or expired">
+          <stringProp name="IfController.condition">${__groovy(
+  vars.get('access_token') == null ||
+  vars.get('access_token').isEmpty() ||
+  vars.get('token_expires_at') == null ||
+  System.currentTimeMillis() &gt;= vars.get('token_expires_at').toLong()
+)}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Get access token">
+            <stringProp name="HTTPSampler.domain">${TOKEN_HOST}</stringProp>
+            <stringProp name="HTTPSampler.port">${TOKEN_PORT}</stringProp>
+            <stringProp name="HTTPSampler.protocol">${TOKEN_PROTOCOL}</stringProp>
+            <stringProp name="HTTPSampler.path">${TOKEN_PATH}</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+            <stringProp name="HTTPSampler.method">POST</stringProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+            <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+              <collectionProp name="Arguments.arguments">
+                <elementProp name="grant_type" elementType="HTTPArgument">
+                  <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                  <stringProp name="Argument.name">grant_type</stringProp>
+                  <stringProp name="Argument.value">client_credentials</stringProp>
+                  <stringProp name="Argument.metadata">=</stringProp>
+                  <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                </elementProp>
+                <elementProp name="client_id" elementType="HTTPArgument">
+                  <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                  <stringProp name="Argument.name">client_id</stringProp>
+                  <stringProp name="Argument.value">${CLIENT_ID}</stringProp>
+                  <stringProp name="Argument.metadata">=</stringProp>
+                  <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                </elementProp>
+                <elementProp name="client_secret" elementType="HTTPArgument">
+                  <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                  <stringProp name="Argument.name">client_secret</stringProp>
+                  <stringProp name="Argument.value">${CLIENT_SECRET}</stringProp>
+                  <stringProp name="Argument.metadata">=</stringProp>
+                  <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                </elementProp>
+              </collectionProp>
+            </elementProp>
+          </HTTPSamplerProxy>
+          <hashTree>
+            <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="Extract access token and expiry">
+              <stringProp name="JSONPostProcessor.referenceNames">extracted_access_token;extracted_expires_in</stringProp>
+              <stringProp name="JSONPostProcessor.jsonPathExprs">$.access_token;$.expires_in</stringProp>
+              <stringProp name="JSONPostProcessor.match_numbers">1;1</stringProp>
+              <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND;${DEFAULT_TOKEN_EXPIRY_SECONDS}</stringProp>
+            </JSONPostProcessor>
+            <hashTree/>
+            <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="Store token expiry">
+              <stringProp name="cacheKey">true</stringProp>
+              <stringProp name="filename"></stringProp>
+              <stringProp name="parameters"></stringProp>
+              <stringProp name="script">if (prev.isSuccessful() &amp;&amp; vars.get('extracted_access_token') != 'NOT_FOUND') {
+    long expiresInSeconds = vars.get('extracted_expires_in') as long
+    long safetySeconds = vars.get('TOKEN_EXPIRY_SAFETY_SECONDS') as long
+    long usableSeconds = Math.max(0L, expiresInSeconds - safetySeconds)
+
+    vars.put('access_token', vars.get('extracted_access_token'))
+    vars.put('token_expires_at', (System.currentTimeMillis() + usableSeconds * 1000L).toString())
+} else {
+    vars.remove('access_token')
+    vars.remove('token_expires_at')
+}</stringProp>
+              <stringProp name="scriptLanguage">groovy</stringProp>
+            </JSR223PostProcessor>
+            <hashTree/>
+          </hashTree>
+        </hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="Screen only with access token">
+          <stringProp name="IfController.condition">${__groovy(vars.get('access_token') != null &amp;&amp; !vars.get('access_token').isEmpty())}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Screen payment - ${payment_sample_type}">
+          <stringProp name="HTTPSampler.domain">${SCREEN_HOST}</stringProp>
+          <stringProp name="HTTPSampler.port">${SCREEN_PORT}</stringProp>
+          <stringProp name="HTTPSampler.protocol">${SCREEN_PROTOCOL}</stringProp>
+          <stringProp name="HTTPSampler.path">${SCREEN_PATH}</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">${payment_payload}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          </HTTPSamplerProxy>
+          <hashTree>
+            <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Select payment sample">
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="filename"></stringProp>
+            <stringProp name="parameters"></stringProp>
+            <stringProp name="script">import java.util.concurrent.atomic.AtomicLong
+
+def counter = props.computeIfAbsent('payment_request_counter') { new AtomicLong() }
+long requestNumber = counter.incrementAndGet()
+int everyN = vars.get('BAD_ACTOR_EVERY_N') as int
+boolean badActor = everyN &gt; 0 &amp;&amp; requestNumber % everyN == 0
+
+vars.put('payment_payload', vars.get(badActor ? 'BAD_PAYMENT_BODY' : 'GOOD_PAYMENT_BODY'))
+vars.put('payment_sample_type', badActor ? 'bad' : 'good')
+vars.put('payment_request_number', requestNumber.toString())</stringProp>
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            </JSR223PreProcessor>
+            <hashTree/>
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Screening request headers">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="Content-Type" elementType="Header">
+                <stringProp name="Header.name">Content-Type</stringProp>
+                <stringProp name="Header.value">application/xml</stringProp>
+              </elementProp>
+              <elementProp name="Authorization" elementType="Header">
+                <stringProp name="Header.name">Authorization</stringProp>
+                <stringProp name="Header.value">Bearer ${access_token}</stringProp>
+              </elementProp>
+            </collectionProp>
+            </HeaderManager>
+            <hashTree/>
+            <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="Invalidate rejected token">
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="filename"></stringProp>
+            <stringProp name="parameters"></stringProp>
+            <stringProp name="script">if (prev.getResponseCode() == '401') {
+    vars.remove('access_token')
+    vars.remove('token_expires_at')
+}</stringProp>
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            </JSR223PostProcessor>
+            <hashTree/>
+          </hashTree>
+        </hashTree>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

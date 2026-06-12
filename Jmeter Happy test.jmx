@@ -21,7 +21,7 @@
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+        <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
           <collectionProp name="HeaderManager.headers"/>
         </HeaderManager>
         <hashTree/>
@@ -97,7 +97,7 @@ log.debug(&quot;Payload selected: ${vars.get(&apos;selectedPayloadType&apos;)}, 
           <stringProp name="TestPlan.comments">Selects messages given the HitProportion per parameter</stringProp>
         </JSR223PreProcessor>
         <hashTree/>
-        <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor - build request payload and put into variable (required for AWS signature)">
+        <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor - build request payload and put into variable (required for AWS signature)" enabled="true">
           <stringProp name="scriptLanguage">groovy</stringProp>
           <stringProp name="parameters"></stringProp>
           <stringProp name="filename"></stringProp>
@@ -114,7 +114,7 @@ def body = &quot;&quot;&quot;
 vars.put(&quot;request_body&quot;, body)</stringProp>
         </JSR223PreProcessor>
         <hashTree/>
-        <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="Header configuration">
+        <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="Header configuration" enabled="true">
           <collectionProp name="Arguments.arguments">
             <elementProp name="aws_access_key" elementType="Argument">
               <stringProp name="Argument.name">aws_access_key</stringProp>
@@ -439,6 +439,13 @@ log.debug(&quot;aws_authorization=&quot; + authorizationHeader)</stringProp>
 
 if (loggerEnabled?.trim()?.equalsIgnoreCase(&quot;YES&quot;)) {
     def samplerName = prev.getSampleLabel()
+
+    // Outbound request details
+    def requestUrl = prev.getUrlAsString()
+    def requestHeaders = prev.getRequestHeaders()
+    def requestBody = prev.getSamplerData()
+
+    // Response details
     def url = prev.getURL()
     def responseCode = prev.getResponseCode()
     def responseMessage = prev.getResponseMessage()
@@ -447,7 +454,19 @@ if (loggerEnabled?.trim()?.equalsIgnoreCase(&quot;YES&quot;)) {
     def responseBody = prev.getResponseDataAsString()
 
     log.info(&quot;&quot;&quot;
-================ HTTP RESPONSE ================
+================ HTTP TRANSACTION ================
+
+================ OUTBOUND REQUESTT ================
+Sampler: ${samplerName}
+URL: ${requestUrl}
+
+--- Request Headers ---
+${requestHeaders}
+
+--- Request Body / Sampler Data ---
+${requestBody}
+
+================ HTTP RESPONSE ===================
 Sampler: ${samplerName}
 URL: ${url}
 Status: ${responseCode} ${responseMessage}
@@ -458,7 +477,8 @@ ${responseHeaders}
 
 --- Response Body ---
 ${responseBody}
-===============================================
+
+==================================================
 &quot;&quot;&quot;)
 }</stringProp>
           <stringProp name="scriptLanguage">groovy</stringProp>
